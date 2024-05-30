@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="cd2352b7-12f0-417f-995c-3b2dbf24aa37" name="fita_test" url="http://103.74.116.63">
+        <fileTransfer rootFolder="/domains/buituanhuy.i-tracnghiem.com/public_html" host="103.74.116.63" port="21">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

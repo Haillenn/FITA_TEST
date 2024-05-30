@@ -1,0 +1,756 @@
+@extends('admin.master')
+@section('title', 'Câu hỏi')
+{{-- main content --}}
+@section('main-content')
+
+    <div class="container-fluid">
+        <form class="example" action="">
+            <input type="text" placeholder="Search.." name="key" onkeyup="searchTable()" class="w-80">
+            <button type="submit" class="btn btn-primary">Search </button>
+        </form>
+        <div class="card">
+        </div>
+        <div class="card-body">
+
+            {{-- button start --}}
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQnaModal">
+                + Thêm câu hỏi
+            </button>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importQnaModal">
+                + Thêm danh sách câu hỏi
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="addQnaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Thêm câu hỏi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <form id="addQna">
+                            @csrf
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col">
+                                        <label class="form-label">Môn học</label>
+                                        <select name="subject_id" class="form-control form-control-alt" >
+                                            <option value=""><label for="" class="form-label">Chọn môn học</label></option>
+                                            @if(count($subjects) > 0)
+                                                @foreach($subjects as $subject)
+                                                    <option value="{{ $subject->id }}">{{ $subject->subject }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <label class="form-label">Câu hỏi</label>
+                                        <textarea  class="form-control form-control-alt" name="question" id="ckeditor" placeholder="Nhập câu hỏi"></textarea>
+                                        <label class="form-label">Câu trả lời 1</label></br>
+                                        <input type="radio" name="is_correct" class="is_correct" value="1"> Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[]" id="ckeditor1"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 2</label></br>
+                                        <input type="radio" name="is_correct" class="is_correct" value="2"> Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[]" id="ckeditor2"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 3</label></br>
+                                        <input type="radio" name="is_correct" class="is_correct" value="3"> Câu trả lời đúng
+                                        <textarea class="form-control form-control-alt" name="answers[]" id="ckeditor3"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 4</label></br>
+                                        <input type="radio" name="is_correct" class="is_correct" value="4"> Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[]" id="ckeditor4"  placeholder="Nhập câu trả lời" ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <span class="error" style="color: red;"></span>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Add</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!--Show answer Modal -->
+            <div class="modal fade" id="showAnsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Câu trả lời</h5>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table">
+                                <thead>
+                                <th class="text-center">Mã câu trả lời</th>
+                                <th class="text-center">Câu trả lời</th>
+                                <th class="text-center">Câu trả lời đúng</th>
+                                </thead>
+                                <tbody class="showAnswers">
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="modal-footer">
+                            <span class="error" style="color: red;"></span>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!--Edit Modal -->
+            <div class="modal fade" id="editQnaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Sửa câu hỏi</h5>
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="editQna">
+                            @csrf
+                            <div class="modal-body editModalAnswers">
+                                <div class="row">
+                                    <div class="col">
+                                        <label class="form-label">Môn học</label>
+                                        <select name="subject_id" class="form-control form-control-alt" >
+                                            <option value=""><label for="" class="form-label">Chọn môn học</label></option>
+                                            @if(count($subjects) > 0)
+                                                @foreach($subjects as $subject)
+                                                    <option value="{{ $subject->id }}">{{ $subject->subject }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <label class="form-label">Câu hỏi</label>
+                                        <input type="hidden" name="question_id" id="question_id">
+                                        <textarea  class="form-control form-control-alt" name="question" id="question" placeholder="Nhập câu hỏi"></textarea>
+                                        <label class="form-label">Câu trả lời 1</label></br>
+                                        <input type="radio" name="is_correct" class="edit_is_correct" value="1" > Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[`+qna['answers'][i]['id']+`]" id="ckeditorEdit1"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 2</label></br>
+                                        <input type="radio" name="is_correct" class="edit_is_correct" value="2"> Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[`+qna['answers'][i]['id']+`]" id="ckeditorEdit2"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 3</label></br>
+                                        <input type="radio" name="is_correct" class="edit_is_correct" value="3"> Câu trả lời đúng
+                                        <textarea class="form-control form-control-alt" name="answers[`+qna['answers'][i]['id']+`]" id="ckeditorEdit3"  placeholder="Nhập câu trả lời" ></textarea>
+                                        <label class="form-label">Câu trả lời 4</label></br>
+                                        <input type="radio" name="is_correct" class="edit_is_correct" value="4"> Câu trả lời đúng
+                                        <textarea  class="form-control form-control-alt" name="answers[`+qna['answers'][i]['id']+`]" id="ckeditorEdit4"  placeholder="Nhập câu trả lời" ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <span class="editError" style="color: red;"></span>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Modal -->
+            <div class="modal fade" id="deleteQnaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Xóa câu hỏi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="deleteQna">
+                            @csrf
+                            <div class="modal-body">
+                                <input type="hidden" name="id" id="delete_qna_id">
+                                <p>Bạn có chắc chắn muốn xóa câu hỏi hay không?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Modal -->
+            <div class="modal fade" id="importQnaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Thêm danh sách câu hỏi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="importQna" enctype="multipart/form-data">
+                            @csrf
+                            <div class="modal-body">
+                                <label class="form-label">FILE MẪU UP LOAD</label>
+                                <a class="form-control form-control-alt"  type="file"  href="/public/example/FITATEST.xlsx" download>Tải file mẫu upload</a></br>
+                                <label class="form-label">Upload file</label>
+                                <input class="form-control form-control-alt"  type="file" name="file" id="fileupload" required accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheet.sheet, application/vnd.ms.excel"></br>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-info">Import</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {{-- table --}}
+            <div class="table-responsive">
+                <table class="table table-vcenter" id="qnasTable">
+                    <thead>
+                    <tr>
+                        <th class="text-center">STT</th>
+                        <th class="text-center">Câu hỏi</th>
+                        <th class="text-center">Câu trả lời</th>
+                        <th class="text-center">Môn học</th>
+                        <th class="text-center col-header-action">Tùy chọn</th>
+                        <th class="text-center col-header-action">Tùy chọn</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @if(count($questions) > 0)
+                        @foreach($questions as $question)
+                            <tr>
+                                <td class="text-center">{{ ++$i}}</td>
+                                <td class="text-center">{{ $question->question }}</td>
+                                <td class="text-center">
+                                    <a href="#" class="ansButton" data-id="{{ $question->id }}" data-bs-toggle="modal" data-bs-target="#showAnsModal">See Answer</a>
+                                </td>
+                                <td class="text-center">{{ $question->subjects[0]['subject']}}</td>
+                                <td>
+                                    <div class="text-center inline-block">
+                                        <button class="btn btn-danger deleteButton" data-bs-toggle="modal" data-id="{{ $question->id }}" data-bs-target="#deleteQnaModal">Xóa</button>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-success editButton" data-bs-toggle="modal" data-id="{{ $question->id }}" data-bs-target="#editQnaModal">Sửa</button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td>Không có dữ liệu</td>
+                        </tr>
+                    @endif
+
+
+                </table>
+
+            </div>
+        </div>
+
+
+        <script>
+            $(document).ready(function(){
+
+                //form submittion
+                $("#addQna").submit(function(e){
+                    e.preventDefault();
+
+                    var checkIsCorrect = false;
+
+                    for(let i = 0; i < $(".is_correct").length; i++){
+                        if($(".is_correct:eq("+i+")").prop('checked') == true){
+                            checkIsCorrect = true;
+                            var giatri = "";
+                            if(i == 0){
+                                giatri = ckedit1.getData();
+                            }
+                            if(i == 1){
+                                giatri = ckedit2.getData();
+                            }
+                            if(i == 2){
+                                giatri = ckedit3.getData();
+                            }
+                            if(i == 3){
+                                giatri = ckedit4.getData();
+                            }
+
+                            $(".is_correct:eq("+i+")").val(giatri);
+
+                        }
+
+                        if(checkIsCorrect){
+
+                            var formData = $(this).serialize();
+
+                            $.ajax({
+                                url:"{{ route('addQna') }}",
+                                type:"POST",
+                                data:formData,
+                                success:function(data){
+                                    console.log(data);
+                                    if(data.success == true){
+                                        location.reload();
+                                    }else{
+                                        alert(data.msg);
+                                    }
+                                }
+                            });
+
+                        }else{
+                            $(".error").text("Kiểm tra, điền đầy đủ thông tin!")
+                            setTimeout(function() {
+                                $(".error").text("");
+                            }, 2000);
+                        }
+
+                    }
+                });
+
+                // show ans
+                $(".ansButton").click(function(){
+
+                    var questions = @json($questions);
+                    var qid = $(this).attr('data-id');
+                    var html = '';
+
+                    // console.log(questions);
+                    for(let i=0; i<questions.length; i++){
+                        if( questions[i]['id'] == qid){
+
+                            var answersLength =questions[i]['answers'].length;
+                            for(let j=0; j < answersLength; j++){
+                                let is_correct = "No";
+                                if(questions[i]['answers'][j]['is_correct']==1){
+                                    is_correct = 'Yes';
+                                }
+
+                                html += `
+                            <tr>
+                                <td class="text-center">`+(j+1)+`</td>
+                                <td>`+questions[i]['answers'][j]['answer']+` </td>
+                                <td class="text-center">`+is_correct+`</td>
+                            </tr>
+                        `;
+                            }
+                            break;
+                        }
+                    }
+
+                    $('.showAnswers').html(html);
+
+                });
+
+                //edit or Update Answer
+                $(".editButton").click(function(){
+                    var qid = $(this).attr('data-id');
+
+                    $.ajax({
+                        url:"{{ route('getQnaDetails') }}",
+
+                        type:"GET",
+                        data:{qid:qid},
+                        success:function(data){
+                            //console.log(data);
+
+                            var qna = data.data[0];
+                            $("#question_id").val(qna['id']);
+                            $("#question").val(qna['question']);
+                            // $("#subject_id").val(question[]);
+                            $(".editAnswers").remove();
+                            var html ='';
+
+
+                            for(let i = 0; i < qna['answers'].length; i++){
+
+                                var checked = '';
+                                if(qna['answers'][i]['is_correct'] == 1){
+                                    checked = 'checked';
+                                }
+
+                                html += `
+                            <div class="row mt-2 editAnswers inline-block">
+                        <input type="radio" name="is_correct" class="edit_is_correct" `+checked+`>
+                        <div class="col mt-2 inline-block">
+                            <input type="text" class="w-90 " name="answers[`+qna['answers'][i]['id']+`]"
+                            placeholder="Nhập câu trả lời" value="`+qna['answers'][i]['answer']+`" required>
+                            <button class="btn btn-danger removeButton removeAnswer" data-id="`+qna['answers'][i]['id']+`">Remove</button>
+                        </div>
+                            </div>`;
+                            }
+                            $(".editModalAnswers").append(html);
+                        }
+                    });
+                });
+
+                //Update Qna submittion
+                $("#editQna").submit(function(e){
+                    e.preventDefault();
+
+                        var checkIsCorrect = false;
+
+                        for(let i = 0; i < $(".is_correct").length; i++){
+                            if($(".is_correct:eq("+i+")").prop('checked') == true) {
+                                checkIsCorrect = true;
+                                var giatri = "";
+                                if (i == 0) {
+                                    giatri = ckeditEdit1.getData();
+                                }
+                                if (i == 1) {
+                                    giatri = ckeditEdit2.getData();
+                                }
+                                if (i == 2) {
+                                    giatri = ckeditEdit3.getData();
+                                }
+                                if (i == 3) {
+                                    giatri = ckeditEdit4.getData();
+                                }
+
+                                $(".is_correct:eq(" + i + ")").val(giatri);
+
+                            }
+                        }
+
+                        if(checkIsCorrect){
+                            //next lecture cover
+                            var formData = $(this).serialize();
+
+                            $.ajax({
+                                url:"{{ route('updateQna') }}",
+                                type:"POST",
+                                data:formData,
+                                success:function(data){
+                                    //console.log(data);
+                                    if(data.success = true){
+                                        location.reload();
+                                    }else{
+                                        alert(data.msg);
+                                    }
+                                }
+                            });
+
+                        }else{
+                            $(".error").text("Kiểm tra, điền đầy đủ thông tin!")
+                            setTimeout(function() {
+                                $(".error").text("");
+                            }, 2000);
+                        }
+
+                    })
+                });
+
+                // delete_qna_id delete Q&A
+                $('.deleteButton').click(function(){
+                    var id = $(this).attr('data-id')
+                    $('#delete_qna_id').val(id);
+                });
+
+                $('#deleteQna').submit(function(e){
+                    e.preventDefault();
+
+                    var formData = $(this).serialize();
+
+                    $.ajax({
+                        url:"{{ route('deleteQna') }}",
+                        type:"POST",
+                        data:formData,
+                        success:function(data){
+                            if(data.success == true){
+                                location.reload();
+                            }else{
+                                alert(data.msg);
+                            }
+                        }
+                    });
+                });
+
+        // import Qna
+                $('#importQna').submit(function(e){
+                    e.preventDefault();
+
+                    let formData = new FormData();
+
+                    formData.append("file", fileupload.files[0]);
+
+                    $.ajaxSetup({
+                        headers:{
+                            "X-CSRF-TOKEN":"{{  csrf_token() }}"
+                        }
+                    });
+
+                    $.ajax({
+                        url:"{{ route('importQna') }}",
+                        type:"POST",
+                        data:formData,
+                        processData:false,
+                        contentType:false,
+                        success:function(data){
+                            // console.log(data);
+                            if(data.success == true){
+                                location.reload();
+                            }else{
+                                alert(data.msg);
+                            }
+                        }
+                    });
+
+
+            });
+        </script>
+
+{{--        ckeditor--}}
+        <script>
+{{--add qna--}}
+            let ckeditor;
+            let ckeditor1;
+            let ckeditor2;
+            let ckeditor3;
+            let ckeditor4;
+
+
+            ClassicEditor
+                .create(document.querySelector('#ckeditor'), {
+                    language: 'en',
+
+                    ckfinder: {
+                        uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}',
+                    },
+
+                    toolbar:{
+                        items: ['heading',
+                            '|', 'bold', 'italic',
+                            '|', 'insertTable',
+                            '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                            '|', 'MathType', 'ChemType','SpecialCharacters',
+                            '|','imageUpload',
+                            '|', 'undo', 'redo',
+                        ]
+                    },
+
+                })
+                .then(editor => {
+                    ckedit = editor
+                })
+                .catch(error => {
+                    console.error(error);
+            });
+
+            ClassicEditor
+                .create(document.querySelector('#ckeditor1'), {
+                    ckfinder: {
+                        uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+                    },
+                    toolbar:{
+                        items: ['heading',
+                            '|', 'bold', 'italic',
+                            '|', 'insertTable',
+                            '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                            '|', 'MathType', 'ChemType','SpecialCharacters',
+                            '|', 'imageUpload',
+                            '|', 'undo', 'redo',
+                        ]
+                    },
+                })
+                .then(editor => {
+                    ckedit1 = editor
+                })
+                .catch(error => {
+                console.error(error);
+            });
+
+            ClassicEditor
+                    .create(document.querySelector('#ckeditor2'), {
+                        ckfinder: {
+                            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+                        },
+                        toolbar:{
+                            items: ['heading',
+                                '|', 'bold', 'italic',
+                                '|', 'insertTable',
+                                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                                '|', 'MathType', 'ChemType','SpecialCharacters',
+                                '|', 'imageUpload',
+                                '|', 'undo', 'redo',
+                            ]
+                        },
+                    })
+                    .then(editor => {
+                        ckedit2 = editor
+                    })
+                    .catch(error => {
+                        console.error(error);
+            });
+
+            ClassicEditor
+                    .create(document.querySelector('#ckeditor3'), {
+                        ckfinder: {
+                            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+                        },
+                        toolbar:{
+                            items: ['heading',
+                                '|', 'bold', 'italic',
+                                '|', 'insertTable',
+                                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                                '|', 'MathType', 'ChemType','SpecialCharacters',
+                                '|', 'imageUpload',
+                                '|', 'undo', 'redo',
+                            ]
+                        },
+                    })
+                    .then(editor => {
+                        ckedit3 = editor
+                    })
+                    .catch(error => {
+                        console.error(error);
+            });
+
+            ClassicEditor
+                    .create(document.querySelector('#ckeditor4'), {
+                        ckfinder: {
+                            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+                        },
+                        toolbar:{
+                            items: ['heading',
+                                '|', 'bold', 'italic',
+                                '|', 'insertTable',
+                                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                                '|', 'MathType', 'ChemType','SpecialCharacters',
+                                '|', 'imageUpload',
+                                '|', 'undo', 'redo',
+                            ]
+                        },
+                    })
+                    .then(editor => {
+                        ckedit4 = editor
+                    })
+                    .catch(error => {
+                        console.error(error);
+            });
+
+
+            {{--edit qna--}}
+let question;
+let ckeditorEdit1;
+let ckeditorEdit2;
+let ckeditorEdit3;
+let ckeditorEdit4;
+
+
+ClassicEditor
+    .create(document.querySelector('#question'), {
+        language: 'en',
+
+        ckfinder: {
+            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}',
+        },
+
+        toolbar:{
+            items: ['heading',
+                '|', 'bold', 'italic',
+                '|', 'insertTable',
+                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                '|', 'MathType', 'ChemType','SpecialCharacters',
+                '|','imageUpload',
+                '|', 'undo', 'redo',
+            ]
+        },
+
+    })
+    .then(editor => {
+        ckedit = editor
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+ClassicEditor
+    .create(document.querySelector('#ckeditorEdit1'), {
+        ckfinder: {
+            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+        },
+        toolbar:{
+            items: ['heading',
+                '|', 'bold', 'italic',
+                '|', 'insertTable',
+                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                '|', 'MathType', 'ChemType','SpecialCharacters',
+                '|', 'imageUpload',
+                '|', 'undo', 'redo',
+            ]
+        },
+    })
+    .then(editor => {
+        ckedit1 = editor
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+ClassicEditor
+    .create(document.querySelector('#ckeditorEdit2'), {
+        ckfinder: {
+            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+        },
+        toolbar:{
+            items: ['heading',
+                '|', 'bold', 'italic',
+                '|', 'insertTable',
+                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                '|', 'MathType', 'ChemType','SpecialCharacters',
+                '|', 'imageUpload',
+                '|', 'undo', 'redo',
+            ]
+        },
+    })
+    .then(editor => {
+        ckedit2 = editor
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+ClassicEditor
+    .create(document.querySelector('#ckeditorEdit3'), {
+        ckfinder: {
+            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+        },
+        toolbar:{
+            items: ['heading',
+                '|', 'bold', 'italic',
+                '|', 'insertTable',
+                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                '|', 'MathType', 'ChemType','SpecialCharacters',
+                '|', 'imageUpload',
+                '|', 'undo', 'redo',
+            ]
+        },
+    })
+    .then(editor => {
+        ckedit3 = editor
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+ClassicEditor
+    .create(document.querySelector('#ckeditorEdit4'), {
+        ckfinder: {
+            uploadUrl: '{{route('ckeditor.upload', ['_token'=>csrf_token()] ) }}'
+        },
+        toolbar:{
+            items: ['heading',
+                '|', 'bold', 'italic',
+                '|', 'insertTable',
+                '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
+                '|', 'MathType', 'ChemType','SpecialCharacters',
+                '|', 'imageUpload',
+                '|', 'undo', 'redo',
+            ]
+        },
+    })
+    .then(editor => {
+        ckedit4 = editor
+    })
+        </script>
+
+
+@endsection
